@@ -38,7 +38,7 @@ class AsyncWebCrawler:
     async def _crawl(self):
         url_to_fetch, depth = await self.url_queue.get()
         if depth <= 0:
-            queue.task_done()
+            self.url_queue.task_done()
         async with aiohttp.ClientSession() as session:
             async with session.get(url_to_fetch) as response:
                 logger.debug(f"Status: {response.status"})
@@ -48,8 +48,10 @@ class AsyncWebCrawler:
                         logger.debug(f"Found {len(urls} urls on page
                                 {url_to_fetch}")
                         urls_to_add = set(urls) - self.seen_links
-                        self.url_queue.append(urls_to_add)
+                        tuples = zip(urls_to_add, [depth]*len(urls_to_add))
+                        self.url_queue.append(tuples)
                         self.seen_links.nowait(links)
+                        self.url_queue.task_done()
 
     async def parse_links(self, body):
         links = []
@@ -57,5 +59,4 @@ class AsyncWebCrawler:
             if link.has_attr('href'):
                 links.append(link)
         return links
-
 
