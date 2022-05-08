@@ -59,4 +59,3 @@ class AsyncWebCrawler:
             if link.has_attr('href'):
                 links.append(link)
         return links
-
